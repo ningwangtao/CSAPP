@@ -20,7 +20,7 @@ e.g. write 0x00007fd357a02ae0 to cache, the memory lapping should be:
  * @param cr core index
  * @return uint64_t 
  */
-uint64_t read64bits_dram(uint64_t paddr, core_t* cr){
+uint64_t read64bits_dram(uint64_t paddr){
     if(DEBUG_ENABLE_SRAM_CACHE == 1){
         // try to read uint64_t from SRAM cache
         // little-endian
@@ -50,7 +50,7 @@ uint64_t read64bits_dram(uint64_t paddr, core_t* cr){
  * @param data 
  * @param cr core index
  */
-void write64bits_dram(uint64_t paddr, uint64_t data, core_t* cr){
+void write64bits_dram(uint64_t paddr, uint64_t data){
     if(DEBUG_ENABLE_SRAM_CACHE == 1){
         // try to write uint64_t from SRAM cache
         // little-endian
@@ -75,7 +75,7 @@ void write64bits_dram(uint64_t paddr, uint64_t data, core_t* cr){
  * @param buf 
  * @param cr 
  */
-void readinst_dram(uint64_t paddr, char* buf,core_t* cr){
+void readinst_dram(uint64_t paddr, char* buf){
     for(int i=0; i< MAX_INSTRUCTION_CHAR; ++i){
         buf[i] = (char)pm[paddr + i];
     }
@@ -88,7 +88,7 @@ void readinst_dram(uint64_t paddr, char* buf,core_t* cr){
  * @param str 
  * @param cr 
  */
-void writeinst_dram(uint64_t paddr, const char* str,core_t* cr){
+void writeinst_dram(uint64_t paddr, const char* str){
     uint8_t len = strlen(str);
     assert(len < MAX_INSTRUCTION_CHAR);
 

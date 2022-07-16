@@ -12,7 +12,7 @@
 
 // struct of registers in each core
 // resource accessible to the core itself only
-typedef struct REGISTER_STRUCT
+typedef struct 
 {
     // return value
     union 
@@ -173,7 +173,8 @@ typedef struct REGISTER_STRUCT
         uint16_t r15w;
         uint8_t  r15b;
     };  
-}reg_t;
+}cpu_reg_t;
+cpu_reg_t cpu_reg;
 
 
 /*=================================*/
@@ -221,11 +222,11 @@ Notes:SRAM cache address is translated pyhsical address
     cmp   compare
     test  test
 */
-typedef struct CPU_FLAGS_STRUCT
+typedef struct
 {
     union 
     {
-        uint64_t __cpu_flag_value;
+        uint64_t __flag_value;
         struct{
             // carry flag : detect overflow for unsigned operatopns
         uint16_t CF;
@@ -238,36 +239,22 @@ typedef struct CPU_FLAGS_STRUCT
         };
     };
 }cpu_flag_t;
+cpu_flag_t cpu_flags;
 
     
 
-typedef struct CORE_STRUCT
+typedef struct
 {
     // program counter or instruction pointer
-    union 
-    {
-        uint64_t rip;
-        uint32_t eip;
-    };
-    
-    cpu_flag_t flags;
-
-    // refister files
-    reg_t     reg;
-}core_t;
-
-
-// define cpu core array to support core level parallelism
-#define NUM_CORES 1
-core_t cores[NUM_CORES];
-// active core for current task
-uint64_t ACTIVE_CORE;
-
+    uint64_t rip;
+    uint32_t eip;
+}cpu_pc_t;
+cpu_pc_t cpu_pc;
 
 #define NUM_INSTRTYPE           14
 
 // CPU's instruction cycle : execution of instructions
-void instruction_cycle(core_t *cr);
+void instruction_cycle();
 
 /*--------------------------------------------*/
 // place the function here because they requires the core_t type
@@ -277,7 +264,7 @@ void instruction_cycle(core_t *cr);
 
 // translate the virtual address to pgysical address in MMU
 // each MMU is owned by each core
-uint64_t va2pa(uint64_t vaddr, core_t* cr);
+uint64_t va2pa(uint64_t vaddr);
 
 // end of include guard
 #endif

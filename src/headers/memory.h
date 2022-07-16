@@ -15,7 +15,7 @@
 // then the physical space is (1 << 16) = 65536
 // total 16 physical memory
 #define PHYSICAL_MEMORY_SPACE      65536
-#define MAX_INDEX_PHYSICAL_PAGE    16
+#define MAX_INDEX_PHYSICAL_PAGE    15
 
 // physical memory
 // 16 physical memory pages
@@ -26,10 +26,10 @@ uint8_t pm[PHYSICAL_MEMORY_SPACE];
 /*=============================================*/
 
 // used by instructions: read or write uint64_t to DRAM
-uint64_t read64bits_dram(uint64_t paddr, core_t* cr);
-void write64bits_dram(uint64_t paddr, uint64_t data, core_t* cr);
-void readinst_dram(uint64_t paddr, char* buf,core_t* cr);
-void writeinst_dram(uint64_t paddr, const char* str,core_t* cr);
+uint64_t read64bits_dram(uint64_t paddr);
+void write64bits_dram(uint64_t paddr, uint64_t data);
+void readinst_dram(uint64_t paddr, char* buf);
+void writeinst_dram(uint64_t paddr, const char* str);
 
 
 #endif

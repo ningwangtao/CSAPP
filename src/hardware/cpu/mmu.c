@@ -6,7 +6,7 @@
 #include "headers/cpu.h"
 #include "headers/memory.h"
 
-uint64_t va2pa(uint64_t vaddr,core_t* cr){
+uint64_t va2pa(uint64_t vaddr){
 //    return vaddr & (0xffffffffffffffff >> (64 - MAX_INDEX_PHYSICAL_PAGE));
     return vaddr % PHYSICAL_MEMORY_SPACE;
 }

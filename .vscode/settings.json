@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "cstdarg": "c",
+        "cmath": "c",
+        "limits": "c",
+        "type_traits": "c",
+        "typeinfo": "c"
+    },
+    "C_Cpp.errorSquiggles": "Disabled"
+}

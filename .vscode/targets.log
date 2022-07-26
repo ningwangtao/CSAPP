@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Fri Jul 15 21:01:07 2022
+# Make data base, printed on Tue Jul 26 23:15:42 2022
 
 # Variables
 
@@ -39,9 +39,9 @@ SHELL = /bin/sh
 # makefile (from 'makefile', line 9)
 COMMON = $(SRC_DIR)/common/printf.c $(SRC_DIR)/common/convert.c
 # environment
-VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn","_translationsConfigFile":"/root/.vscode-server/data/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a","_corruptedFile":"/root/.vscode-server/data/clp/c9280508cf500dcd9c4c87fe2a1b08e9.zh-cn/corrupted.info","_languagePackSupport":true}
+VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"1d735750dbb1b9066c7513078396ba0f.zh-cn","_translationsConfigFile":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn/3b889b090b5ad5793f524b5d1d39fda662b96a2a","_corruptedFile":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn/corrupted.info","_languagePackSupport":true}
 # environment
-_ = /root/.vscode-server/bin/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a/node
+_ = /root/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/node
 # makefile (from 'makefile', line 2)
 CFLAGS = -Wall -g -O2 -Werror -std=gnu99 -Wno-unused-function
 # makefile (from 'makefile', line 1)
@@ -61,15 +61,15 @@ VSCODE_CWD = /root
 # environment
 GOPROXY = https://goproxy.cn,direct
 # environment
-SSH_CONNECTION = 10.211.55.2 64462 10.211.55.3 22
+SSH_CONNECTION = 10.211.55.2 56684 10.211.55.3 22
 # environment
-PATH = /root/.vscode-server/bin/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/bin:/bin:/bin:/bin
+PATH = /root/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/bin:/bin:/bin:/bin
 # environment
 XDG_RUNTIME_DIR = /run/user/0
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/0/vscode-ipc-753ce1b5-e6b5-4ca8-97d8-77cf56ddef7a.sock
+VSCODE_IPC_HOOK_CLI = /run/user/0/vscode-ipc-6c76a9db-886a-4099-b3e6-c7b722f16a85.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -93,7 +93,7 @@ LESSCLOSE = /usr/bin/lesspipe %s %s
 # environment
 LOGNAME = root
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
 # automatic
 +F = $(notdir $+)
 # environment
@@ -113,7 +113,7 @@ SHLVL = 1
 # makefile (from 'makefile', line 1)
 CC = /usr/bin/gcc-9
 # environment
-XDG_SESSION_ID = 589
+XDG_SESSION_ID = 205
 # environment
 USER = root
 # makefile
@@ -124,8 +124,6 @@ USER = root
 CPU = $(SRC_DIR)/hardware/cpu/mmu.c $(SRC_DIR)/hardware/cpu/isa.c
 # default
 MAKE_COMMAND := make
-# environment
-OLDPWD = /root/.vscode-server/bin/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a
 # default
 .VARIABLES := 
 # automatic
@@ -135,11 +133,11 @@ MAKEFLAGS = pqrR
 # environment
 MFLAGS = -pqrR
 # environment
-SSH_CLIENT = 10.211.55.2 64462 22
+SSH_CLIENT = 10.211.55.2 56684 22
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # environment
-BROWSER = /root/.vscode-server/bin/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a/bin/helpers/browser.sh
+BROWSER = /root/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/bin/helpers/browser.sh
 # environment
 VSCODE_HANDLES_SIGPIPE = true
 # default
@@ -167,7 +165,7 @@ BIN_HARDWARE = ./bin/test_hardware
 # environment
 MOTD_SHOWN = pam
 # variable set hash-table stats:
-# Load=77/1024=8%, Rehash=0, Collisions=10/102=10%
+# Load=76/1024=7%, Rehash=0, Collisions=10/101=10%
 
 # Pattern-specific Variable Values
 
@@ -175,15 +173,24 @@ MOTD_SHOWN = pam
 
 # Directories
 
-# . (device 2050, inode 1450052): 10 files, no impossibilities.
+# . (device 2050, inode 1450052): 12 files, no impossibilities.
 
-# 10 files, no impossibilities in 1 directories.
+# 12 files, no impossibilities in 1 directories.
 
 # Implicit Rules
 
 # No implicit rules.
 
 # Files
+
+link:
+#  Phony target (prerequisite of .PHONY).
+#  Implicit rule search has not been done.
+#  File does not exist.
+#  File has not been updated.
+#  recipe to execute (from 'makefile', line 25):
+	$(CC) $(CFLAGS) -I$(SRC_DIR) $(COMMON) $(SRC_DIR)/tests/test_elf.c $(SRC_DIR)/linker/parseElf.c -o ./bin/test_elf
+	./bin/test_elf
 
 # Not a target:
 all:
@@ -192,7 +199,7 @@ all:
 #  File does not exist.
 #  File has not been updated.
 
-.PHONY: hardware
+.PHONY: hardware link
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
@@ -209,7 +216,7 @@ hardware:
 # Not a target:
 makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-15 21:00:20.143362112
+#  Last modified 2022-07-26 23:15:00.784386908
 #  File has been updated.
 #  Successfully updated.
 
@@ -223,23 +230,23 @@ clean:
 #  Implicit rule search has not been done.
 #  Modification time never checked.
 #  File has not been updated.
-#  recipe to execute (from 'makefile', line 24):
-	rm -f *.o *~ $(BIN_HARDWARE)
+#  recipe to execute (from 'makefile', line 29):
+	rm -f *.o *~ $(BIN_HARDWARE) ./bin/test_elf
 
 # files hash-table stats:
-# Load=7/1024=1%, Rehash=0, Collisions=0/19=0%
+# Load=8/1024=1%, Rehash=0, Collisions=0/23=0%
 # VPATH Search Paths
 
 # No 'vpath' search paths.
 
 # No general ('VPATH' variable) search path.
 
-# strcache buffers: 1 (0) / strings = 18 / storage = 156 B / avg = 8 B
-# current buf: size = 8162 B / used = 156 B / count = 18 / avg = 8 B
+# strcache buffers: 1 (0) / strings = 21 / storage = 178 B / avg = 8 B
+# current buf: size = 8162 B / used = 178 B / count = 21 / avg = 8 B
 
-# strcache performance: lookups = 26 / hit rate = 30%
+# strcache performance: lookups = 33 / hit rate = 36%
 # hash-table stats:
-# Load=18/8192=0%, Rehash=0, Collisions=1/26=4%
-# Finished Make data base on Fri Jul 15 21:01:07 2022
+# Load=21/8192=0%, Rehash=0, Collisions=1/33=3%
+# Finished Make data base on Tue Jul 26 23:15:42 2022
 
  

@@ -267,5 +267,5 @@ void free_elf(elf_t* elf){
     free(elf->sht);
     elf->sht = NULL;
     free(elf->symt);
-   elf->symt = NULL;
+    elf->symt = NULL;
 }

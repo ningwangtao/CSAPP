@@ -1,1 +1,1 @@
-valgrind --tool=memcheck --leak-check=full ./bin/test_elf
+valgrind --tool=memcheck --leak-check=full --track-origins=yes ./bin/test_elf

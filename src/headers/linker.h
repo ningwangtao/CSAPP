@@ -38,9 +38,9 @@ typedef struct{
     char st_name[MAX_CHAR_SYMBOL_NAME];
     st_bind_t bind;
     st_type_t type;
-    char st_shndx[MAX_CHAR_SYMBOL_NAME];
-    uint64_t st_value; // in-section offset
-    uint64_t st_size;  // count of lines of symbol
+    char st_shndx[MAX_CHAR_SYMBOL_NAME];     // section header index: e.g. .bss .text .data etc.
+    uint64_t st_value;                       // in-section offset
+    uint64_t st_size;                        // count of lines of symbol
 }st_entry_t;
 
 
@@ -60,5 +60,6 @@ typedef struct{
 
 void parse_elf(char* filename, elf_t* elf);
 void free_elf(elf_t* elf);
+void link_elf(elf_t** src, int num_src, elf_t* dst);
 
  #endif

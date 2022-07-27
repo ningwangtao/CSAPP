@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Tue Jul 26 23:15:42 2022
+# Make data base, printed on Thu Jul 28 05:02:01 2022
 
 # Variables
 
@@ -189,7 +189,7 @@ link:
 #  File does not exist.
 #  File has not been updated.
 #  recipe to execute (from 'makefile', line 25):
-	$(CC) $(CFLAGS) -I$(SRC_DIR) $(COMMON) $(SRC_DIR)/tests/test_elf.c $(SRC_DIR)/linker/parseElf.c -o ./bin/test_elf
+	$(CC) $(CFLAGS) -I$(SRC_DIR) $(COMMON) $(SRC_DIR)/tests/test_elf.c $(SRC_DIR)/linker/parseElf.c $(SRC_DIR)/linker/staticlink.c -o ./bin/test_elf
 	./bin/test_elf
 
 # Not a target:
@@ -216,7 +216,7 @@ hardware:
 # Not a target:
 makefile:
 #  Implicit rule search has been done.
-#  Last modified 2022-07-26 23:15:00.784386908
+#  Last modified 2022-07-28 05:01:50.010420687
 #  File has been updated.
 #  Successfully updated.
 
@@ -247,6 +247,6 @@ clean:
 # strcache performance: lookups = 33 / hit rate = 36%
 # hash-table stats:
 # Load=21/8192=0%, Rehash=0, Collisions=1/33=3%
-# Finished Make data base on Tue Jul 26 23:15:42 2022
+# Finished Make data base on Thu Jul 28 05:02:01 2022
 
  

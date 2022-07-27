@@ -8,13 +8,13 @@
 
 
 /**
- * @brief 
+ * @brief parse one line (entey) from char* str
  * 
  * @param str 
  * @param ent 
  * @return int 
  */
-int parse_table_entry(char* str, char*** ent){
+static int parse_table_entry(char* str, char*** ent){
     // parse line as table entries
     uint8_t count_col = 1;
     uint8_t len = strlen(str);
@@ -61,7 +61,7 @@ int parse_table_entry(char* str, char*** ent){
  * @param ent 
  * @param n 
  */
-void free_table_entry(char** ent, int n){
+static void free_table_entry(char** ent, int n){
     for(int i=0;i<n;++i){
         free(ent[i]);
         ent[i] = NULL;
@@ -76,7 +76,8 @@ void free_table_entry(char** ent, int n){
  * @param str 
  * @param sh 
  */
-void parse_sh(char* str, sh_entry_t* sh){
+static void parse_sh(char* str, sh_entry_t* sh){
+    // .text,0x0,4,22
     char** cols;
     int num_cols = parse_table_entry(str,&cols);
     assert(num_cols == 4);
@@ -89,9 +90,71 @@ void parse_sh(char* str, sh_entry_t* sh){
     free_table_entry(cols,num_cols);
 }
 
-
-void printf_sh_entry(sh_entry_t* sh){
+/**
+ * @brief 
+ * 
+ * @param sh 
+ */
+static void print_sh_entry(sh_entry_t* sh){
     debug_printf(DEBUG_LINKER,"%s\t%x\t%d\t%d\n",sh->sh_name,sh->sh_addr,sh->sh_offset,sh->sh_size);
+}
+
+/**
+ * @brief 
+ * 
+ * @param str 
+ * @param ste 
+ */
+static void parse_symtab(char* str,st_entry_t* ste){
+    // sum,STB_GLOBAL,STT_FUNC,.text,0,22
+    char** cols;
+    int num_cols = parse_table_entry(str,&cols);
+    assert(num_cols == 6);
+    assert(ste != NULL);
+
+    strcpy(ste->st_name,cols[0]);
+
+    // elsect symbol table bind
+    if(strcmp(cols[1],"STB_LOCAL") == 0){
+        ste->bind = STB_LOCAL;
+    }else if(strcmp(cols[1],"STB_GLOBAL") == 0){
+        ste->bind = STB_GLOBAL;
+    }else if(strcmp(cols[1],"STB_WEAK") == 0){
+        ste->bind = STB_WEAK;
+    }else{
+        printf("symbol bind is neiter LOCAL,GLOBAL,nor WEAK\n");
+        exit(1);
+    }
+
+    // select symbol table type
+    if(strcmp(cols[2],"STT_NOTYPE") == 0){
+        ste->type = STT_NOTYPE;
+    }else if(strcmp(cols[2],"STT_OBJECT") == 0){
+        ste->type = STT_OBJECT;
+    }else if(strcmp(cols[2],"STT_FUNC") == 0){
+        ste->type = STT_FUNC;
+    }else{
+        printf("symbol bind is neiter NOTYPE,OBJECT,nor FUNC\n");
+        exit(1);
+    }
+
+    strcpy(ste->st_shndx,cols[3]);
+    ste->st_value = string2uint(cols[4]);
+    ste->st_size = string2uint(cols[5]);
+
+    free_table_entry(cols,num_cols);
+}
+
+/**
+ * @brief 
+ * 
+ * @param ste 
+ */
+static void print_symtab_entry(st_entry_t* ste){
+    debug_printf(DEBUG_LINKER,"%s\t%d\t%d\t%s\t%d\t%d\n",
+                ste->st_name,ste->bind,ste->type,ste->st_shndx,
+                ste->st_value,ste->st_size
+                );
 }
 
 /**
@@ -101,7 +164,7 @@ void printf_sh_entry(sh_entry_t* sh){
  * @param bufaddr 
  * @return int 
  */
-int read_elf(const char* filename, uint64_t bufaddr){
+static int read_elf(const char* filename, uint64_t bufaddr){
     // open file and read
     FILE* fp;
     fp = fopen(filename,"r");
@@ -165,20 +228,33 @@ int read_elf(const char* filename, uint64_t bufaddr){
  * @param elf 
  */
 void parse_elf(char* filename, elf_t* elf){
+    assert(elf != NULL);
     int line_count = read_elf(filename,(uint64_t)(&(elf->buffer)));
     for(int i=0;i<line_count;++i){
         printf("[%d]\t%s\n",i,elf->buffer[i]);
     }
 
     // parse section header
-    int sh_count = string2uint(elf->buffer[1]);
-    elf->sht = malloc(sh_count * sizeof(sh_entry_t));
-    for(int i=0;i<sh_count;++i){
+    elf->sht_count = (uint8_t)string2uint(elf->buffer[1]);
+    elf->sht = malloc(elf->sht_count * sizeof(sh_entry_t));
+    sh_entry_t* symt_sh = NULL;
+    for(int i=0;i<elf->sht_count;++i){
         parse_sh(elf->buffer[2 + i],&(elf->sht[i]));
-        printf_sh_entry(&(elf->sht[i]));
+        print_sh_entry(&(elf->sht[i]));
+        // get symbol table information from section header entry
+        if(strcmp(elf->sht[i].sh_name,".symtab") == 0){
+            symt_sh = &(elf->sht[i]);
+        }
     }
 
-    // TODO parse 
+    // parse symbol table
+    assert(symt_sh != NULL);
+    elf->symt_count = symt_sh->sh_size;
+    elf->symt = malloc(elf->symt_count * (sizeof(st_entry_t)));
+    for(int i=0;i<elf->symt_count;++i){
+        parse_symtab(elf->buffer[symt_sh->sh_offset + i],&(elf->symt[i]));
+        print_symtab_entry(&(elf->symt[i]));
+    }
 }
 
 /**
@@ -190,4 +266,6 @@ void free_elf(elf_t* elf){
     assert(elf != NULL);
     free(elf->sht);
     elf->sht = NULL;
+    free(elf->symt);
+   elf->symt = NULL;
 }

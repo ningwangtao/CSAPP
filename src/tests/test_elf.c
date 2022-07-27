@@ -5,9 +5,9 @@
 #include "headers/linker.h"
 
 
-extern int read_elf(const char* filename, uint64_t bufassr);
-extern void parse_elf(char* filename, elf_t* elf);
-extern void free_elf(elf_t* elf); 
+// extern int read_elf(const char* filename, uint64_t bufassr);
+// extern void parse_elf(char* filename, elf_t* elf);
+// extern void free_elf(elf_t* elf); 
 
 
 // test func read_elf

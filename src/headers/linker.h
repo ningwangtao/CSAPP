@@ -56,6 +56,8 @@ typedef struct{
     uint8_t         symt_count;   // symbol table number
     st_entry_t*     symt;         // symbol table pointer
 
+    uint8_t         line_count;
+
 }elf_t;
 
 void parse_elf(char* filename, elf_t* elf);

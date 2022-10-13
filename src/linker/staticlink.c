@@ -14,7 +14,7 @@
 typedef struct{
     elf_t*        elf;   // source elf file
     st_entry_t*   src;   // source symbol
-    st_entry_t*   dest;  // dst symbol: used for relocation - find the function
+    st_entry_t*   dst;  // dst symbol: used for relocation - find the function
 }smap_t;
 
 /**
@@ -201,7 +201,155 @@ static void symbol_processing(elf_t** src,int num_elf,elf_t* dst, smap_t* smap_t
     }
 }
 
+/**
+ * @brief 
+ * 
+ * @param dst 
+ * @param smap_table 
+ * @param smap_count 
+ */
+static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count){
+    // we only have .text, .rodata, .data as symbols in the section
+    // .bss is not taking any section memory
 
+    int count_text = 0;
+    int count_rodata = 0;
+    int count_data = 0;
+    for(int i=0;i<*smap_count; ++i){
+        st_entry_t *sym = smap_table[i].src;
+        if(strcmp(sym->st_name,".text") == 0){
+            count_text++;
+        }else if(strcmp(sym->st_name,".rodata") == 0){
+            count_rodata++;
+        }else if(strcmp(sym->st_name,".data") == 0){
+            count_data++;
+        }
+    }
+    // TODO: count the section
+    dst->sht_count = 0;
+    // TODO: count the total lines
+    dst->line_count = 0;
+    
+    // the target dst: line_count, sht_count, sht, .text, ,rodata, .data, .symtab
+    // print to buffer
+    sprintf(dst->buffer[0],"%d",dst->line_count);
+    sprintf(dst->buffer[1],"%d",dst->sht_count);
+
+    // compute the run-time address of the sections: compact in memory
+    u_int64_t text_runtime_addr = 0x00400000;
+
+    // TODO
+    u_int64_t rodata_runtime_addr = 0;
+    u_int64_t data_runtime_addr = 0;
+    u_int64_t symtab_runtime_addr = 0;
+
+    // write the section header table
+    assert(dst->sht == NULL);
+    dst->sht = malloc(dst->sht_count * sizeof(sh_entry_t));
+
+    // write int .data, .rodata, .text order
+    // TODO: the start of the offser
+    uint64_t section_offset = 0;
+    int j = 0;
+    sh_entry_t* sh = NULL;
+    if(count_text > 0){
+        //get the pointer
+        assert(j < dst->sht_count);
+        sh = &(dst->sht[j]);
+
+        // write the fields
+        strcpy(sh->sh_name,".text");
+        sh->sh_addr = text_runtime_addr;
+        sh->sh_offset = section_offset;
+        sh->sh_size = count_text;
+
+        // TODO: write to buffer
+        sprintf(dst->buffer[0],"%s,0x%lx,%ld,%ld",sh->sh_name,sh->sh_addr,sh->sh_offset,sh->sh_size);
+
+        // update the index
+        j++;
+        section_offset += sh->sh_size;
+    }else if(count_rodata > 0){
+        // TODO:
+    }else if(count_data > 0){
+        // TODO:
+    }
+
+    // TODO: symtab
+
+    assert(j+1 == dst->sht_count);
+
+    // print and check
+    if((DEBUG_VERBOSE_SET & DEBUG_LINKER) == 0){
+        for(int i=0;i<dst->sht_count;++i){
+            printf("%s/n",dst->buffer[1+1+i]);
+        }
+    }
+}
+
+
+/**
+ * @brief merge the target section lines from ELF files and update dst symtab
+ * 
+ * @param srcs 
+ * @param num_srcs 
+ * @param dst 
+ * @param smap_table 
+ * @param smap_count 
+ */
+static void merge_section(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_table,int* smap_count){
+    int line_written = 1 + 1 + dst->sht_count;
+    int symt_written = 0;
+
+    for(int section_index = 0; section_index < dst->sht_count; ++section_index){
+        // get the section by section ID
+        sh_entry_t* target_sh = &dst->sht[section_index];
+
+        // merge the section
+        // scan every input ELF file
+        for(int i=0; i<num_srcs; ++i){
+            int src_section_index = -1;
+            // scan every section in this elf
+            for(int j=0; j<srcs[i]->sht_count; ++j){
+                // TODO: check if this ELF srcs[i] contains the same section as target_sh
+            }
+
+            // check if we have found this target section from src ELF
+            if(src_section_index == -1){
+                // search for the next ELF
+                continue;
+            }else{
+                // found the section in this ELF srcs[i]
+                // check the symtab
+                for(int j=0; j< srcs[i]->symt_count; ++j){
+                    st_entry_t* sym = &srcs[i]->symt[j];
+
+                    for(int k=0; k<*smap_count; ++k){
+                        // scan the cached dst symbols to check
+                        // if this symbol should be merged into this section
+                        if(sym == smap_table[k].src){
+                            // exactly the cached symbol
+                            // TODO: copy this symbol from srcs[i].buffer into dst.buffer
+
+                            // copy the symbol table entry from srcs[i].symt[j] to dst.symt[symt_writteb]
+                            assert(symt_written < dst->symt_count);
+                            // TODO: copy the entry
+                            // TODO: update the new offset
+
+                            // update the smap_table
+                            // this will hep the
+                            smap_table[k].dst = &dst->symt[symt_written];
+
+                            // TODO: update the counter
+                            symt_written += 0;
+                            line_written += 0;
+                        }
+                    } // symbol srcs[i].symt[j] has been checked
+                } // ELF file srcs[i] has been checked
+            }
+        } //dst.sht[section_index] has been merged from src ELFs
+    } // all sections in dst has been merged
+}
 
 /* ------------------------------------- */
 /*  Exposed Interface for Static Linking */
@@ -213,7 +361,7 @@ static void symbol_processing(elf_t** src,int num_elf,elf_t* dst, smap_t* smap_t
  * @param num_src 
  * @param dst 
  */
-void link_elf(elf_t** src, int num_src, elf_t* dst){
+void link_elf(elf_t** srcs, int num_srcs, elf_t* dst){
 
     // reset the destination since it`s a new 
     memset(dst,0,sizeof(elf_t));
@@ -222,7 +370,7 @@ void link_elf(elf_t** src, int num_src, elf_t* dst){
     smap_t smap_table[MAX_SYMBOL_MAP_LENGTH];
 
     // update the smap table - symbol proccessing
-    symbol_processing(src,num_src,dst,(smap_t*)&smap_table,&smap_count);
+    symbol_processing(srcs,num_srcs,dst,(smap_t*)&smap_table,&smap_count);
 
     printf("--------------------------\n");
     for (int i = 0; i < smap_count; ++ i){
@@ -236,7 +384,24 @@ void link_elf(elf_t** src, int num_src, elf_t* dst){
             ste->st_size);
     }
 
-    // TODO: compute dst Section Header Table and write into buffer
+    // compute dst Section Header nad write into buffer
+    // UPDATE section header table: compute suntime address of each section
+    // UPDATE buffer: EOF file header: file line count,section header table line count,section header table
+    // compute running address of each section: .text, .rodata, .data, .symbol
+    // eof starting from 0x00400000
+    compute_section_header(dst,smap_table,&smap_count);
 
-    // TODO: merge the symbol content fron ELF src into dst sectopns
+    // malloc the dst.symt
+    dst->symt = malloc(dst->symt_count * sizeof(st_entry_t));
+
+    // to this point, the EOF file header and section header table is palced
+    // merge the left sections and relocate the entrirs in .text and .dsts
+
+    // merge the symbol content fron ELF src into dst sectopns
+    merge_section(srcs,num_srcs,dst,smap_table,&smap_count);
+
+    // TODO: update dst.buffer for dst.symt
+    // find the buffer offset for symbol table and write the buffer
 }
+
+// https://github.com/yangminz/bcst_csapp/commit/054da4950ebaa0866ce76e69021d7bfc15ace85a

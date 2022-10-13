@@ -8,7 +8,7 @@ make: *** No rule to make target 'all'.  Stop.
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Thu Jul 28 05:02:01 2022
+# Make data base, printed on Fri Sep  2 15:22:52 2022
 
 # Variables
 
@@ -39,9 +39,9 @@ SHELL = /bin/sh
 # makefile (from 'makefile', line 9)
 COMMON = $(SRC_DIR)/common/printf.c $(SRC_DIR)/common/convert.c
 # environment
-VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"1d735750dbb1b9066c7513078396ba0f.zh-cn","_translationsConfigFile":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn/3b889b090b5ad5793f524b5d1d39fda662b96a2a","_corruptedFile":"/root/.vscode-server/data/clp/1d735750dbb1b9066c7513078396ba0f.zh-cn/corrupted.info","_languagePackSupport":true}
+VSCODE_NLS_CONFIG = {"locale":"zh-cn","availableLanguages":{"*":"zh-cn"},"_languagePackId":"e1243840abbb4e31a890d397033a9abf.zh-cn","_translationsConfigFile":"/root/.vscode-server/data/clp/e1243840abbb4e31a890d397033a9abf.zh-cn/tcf.json","_cacheRoot":"/root/.vscode-server/data/clp/e1243840abbb4e31a890d397033a9abf.zh-cn","_resolvedLanguagePackCoreLocation":"/root/.vscode-server/data/clp/e1243840abbb4e31a890d397033a9abf.zh-cn/da76f93349a72022ca4670c1b84860304616aaa2","_corruptedFile":"/root/.vscode-server/data/clp/e1243840abbb4e31a890d397033a9abf.zh-cn/corrupted.info","_languagePackSupport":true}
 # environment
-_ = /root/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/node
+_ = /root/.vscode-server/bin/da76f93349a72022ca4670c1b84860304616aaa2/node
 # makefile (from 'makefile', line 2)
 CFLAGS = -Wall -g -O2 -Werror -std=gnu99 -Wno-unused-function
 # makefile (from 'makefile', line 1)
@@ -61,15 +61,15 @@ VSCODE_CWD = /root
 # environment
 GOPROXY = https://goproxy.cn,direct
 # environment
-SSH_CONNECTION = 10.211.55.2 56684 10.211.55.3 22
+SSH_CONNECTION = 10.211.55.2 51788 10.211.55.3 22
 # environment
-PATH = /root/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/bin:/bin:/bin:/bin
+PATH = /root/.vscode-server/bin/da76f93349a72022ca4670c1b84860304616aaa2/bin/remote-cli:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/bin:/bin:/bin:/bin
 # environment
 XDG_RUNTIME_DIR = /run/user/0
 # environment
 ELECTRON_RUN_AS_NODE = 1
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/0/vscode-ipc-6c76a9db-886a-4099-b3e6-c7b722f16a85.sock
+VSCODE_IPC_HOOK_CLI = /run/user/0/vscode-ipc-5e2e81fa-6b6c-40bf-8672-bd57f793c37e.sock
 # default
 .FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver output-sync check-symlink load
 # environment
@@ -113,7 +113,7 @@ SHLVL = 1
 # makefile (from 'makefile', line 1)
 CC = /usr/bin/gcc-9
 # environment
-XDG_SESSION_ID = 205
+XDG_SESSION_ID = 1661
 # environment
 USER = root
 # makefile
@@ -133,11 +133,11 @@ MAKEFLAGS = pqrR
 # environment
 MFLAGS = -pqrR
 # environment
-SSH_CLIENT = 10.211.55.2 56684 22
+SSH_CLIENT = 10.211.55.2 51788 22
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # environment
-BROWSER = /root/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/bin/helpers/browser.sh
+BROWSER = /root/.vscode-server/bin/da76f93349a72022ca4670c1b84860304616aaa2/bin/helpers/browser.sh
 # environment
 VSCODE_HANDLES_SIGPIPE = true
 # default
@@ -247,6 +247,6 @@ clean:
 # strcache performance: lookups = 33 / hit rate = 36%
 # hash-table stats:
 # Load=21/8192=0%, Rehash=0, Collisions=1/33=3%
-# Finished Make data base on Thu Jul 28 05:02:01 2022
+# Finished Make data base on Fri Sep  2 15:22:52 2022
 
  

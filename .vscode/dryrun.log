@@ -1,4 +1,4 @@
-make --dry-run --keep-going --print-directory
+make --dry-run --always-make --keep-going --print-directory
 make: Entering directory '/root/c/CSAPP'
 /usr/bin/gcc-9 -Wall -g -O2 -Werror -std=gnu99 -Wno-unused-function -I./src ./src/common/printf.c ./src/common/convert.c ./src/hardware/cpu/mmu.c ./src/hardware/cpu/isa.c ./src/hardware/memory/dram.c ./src/tests/test_hardware.c -o ./bin/test_hardware
 ././bin/test_hardware

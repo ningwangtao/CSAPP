@@ -294,7 +294,7 @@ static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count
         sh->sh_offset = section_offset;
         sh->sh_size = count_text;
 
-        // TODO: write to buffer
+        // write to buffer
         sprintf(dst->buffer[2 + sh_index],"%s,0x%lx,%ld,%ld",sh->sh_name,sh->sh_addr,sh->sh_offset,sh->sh_size);
 
         // update the index
@@ -317,7 +317,7 @@ static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count
         sprintf(dst->buffer[2 + sh_index],"%s,0x%lx,%ld,%ld",sh->sh_name,sh->sh_addr,sh->sh_offset,sh->sh_size);
 
         // update the index
-        sh_index ++;
+        sh_index++;
         section_offset += sh->sh_size;
     }
     // .data
@@ -336,7 +336,7 @@ static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count
         sprintf(dst->buffer[2 + sh_index],"%s,0x%lx,%ld,%ld",sh->sh_name,sh->sh_addr,sh->sh_offset,sh->sh_size);
 
         // update the index
-        sh_index ++;
+        sh_index++;
         section_offset += sh->sh_size;
     }
 
@@ -356,7 +356,7 @@ static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count
 
     // print and check
     if((DEBUG_VERBOSE_SET & DEBUG_LINKER) != 0){
-        printf("-----------------------------\n");
+        printf("compute_section_header------------compute_section_header\n");
         printf("Destination ELF's SHT in Buffer:\n");
         for(int i=0;i<2 + dst->sht_count;++i){
             printf("%s\n",dst->buffer[i]);
@@ -378,6 +378,8 @@ static void merge_section(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_tabl
     int line_written = 1 + 1 + dst->sht_count;
     int symt_written = 0;
     int sym_section_offset = 0;
+
+    debug_printf(DEBUG_LINKER,"merge_section, line_written = %d\n",line_written);
 
     for(int section_index = 0; section_index < dst->sht_count; ++section_index){
         // merge by the dst.sht order in symbol unit
@@ -412,7 +414,7 @@ static void merge_section(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_tabl
                 // check the symtab
                 for(int j=0; j< srcs[i]->symt_count; ++j){
                     st_entry_t* sym = &srcs[i]->symt[j];
-                    if(strcmp(sym->st_name,target_sh->sh_name) == 0){
+                    if(strcmp(target_sh->sh_name,sym->st_shndx) == 0){
                         for(int k=0; k<*smap_count; ++k){
                             // scan the cached dst symbols to check
                             // if this symbol should be merged into this section
@@ -492,7 +494,7 @@ void link_elf(elf_t** srcs, int num_srcs, elf_t* dst){
     // update the smap table - symbol proccessing
     symbol_processing(srcs,num_srcs,dst,(smap_t*)&smap_table,&smap_count);
 
-    printf("--------------------------\n");
+    printf("link_elf--------------------------link_elf\n");
     for (int i = 0; i < smap_count; ++ i){
         st_entry_t *ste = smap_table[i].src;
         debug_printf(DEBUG_LINKER, "%s\t%d\t%d\t%s\t%d\t%d\n",

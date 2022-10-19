@@ -160,6 +160,54 @@ static void print_symtab_entry(st_entry_t* ste){
 /**
  * @brief 
  * 
+ * @param str 
+ * @param rte 
+ */
+static void parse_relocation(char* str, rel_entry_t* rte){
+    // 4,7,R_X86_64_PC32,0,-4
+    char** cols;
+    int num_cols = parse_table_entry(str,&cols);
+    assert(num_cols == 5);
+
+    assert(rte != NULL);
+    rte->r_row = string2uint(cols[0]);
+    rte->r_col = string2uint(cols[1]);
+
+    // select relocation type
+    if(strcmp(cols[2],"R_X86_64_32") == 0){
+        rte->type = R_X86_64_32;
+    }else if(strcmp(cols[2],"R_X86_64_PC32") == 0){
+        rte->type = R_X86_64_PC32;
+    }else if(strcmp(cols[2],"R_X86_64_PLT32") == 0){
+        rte->type = R_X86_64_PLT32;
+    }else{
+        printf("relocation type is neiter R_X86_64_32,R_X86_64_PC32,nor R_X86_64_PLT32\n");
+        exit(0);
+    }
+    rte->sym = string2uint(cols[3]);
+    uint64_t bitmap = string2uint(cols[4]);
+    rte->r_addrend = *(int64_t *)&bitmap;
+
+    free_table_entry(cols,num_cols);
+}
+
+/**
+ * @brief 
+ * 
+ * @param rte 
+ */
+static void print_relocation_entry(rel_entry_t* rte){
+    debug_printf(DEBUG_LINKER,"%d\t%d\t%d\t%d\t%d\n",
+        rte->r_row,
+        rte->r_col,
+        rte->type,
+        rte->sym,
+        rte->r_addrend);
+}
+
+/**
+ * @brief 
+ * 
  * @param filename 
  * @param bufaddr 
  * @return int 
@@ -238,12 +286,18 @@ void parse_elf(char* filename, elf_t* elf){
     elf->sht_count = (uint8_t)string2uint(elf->buffer[1]);
     elf->sht = malloc(elf->sht_count * sizeof(sh_entry_t));
     sh_entry_t* symt_sh = NULL;
+    sh_entry_t* rtext_sh = NULL;
+    sh_entry_t* rdata_sh = NULL;
     for(int i=0;i<elf->sht_count;++i){
         parse_sh(elf->buffer[2 + i],&(elf->sht[i]));
         print_sh_entry(&(elf->sht[i]));
         // get symbol table information from section header entry
         if(strcmp(elf->sht[i].sh_name,".symtab") == 0){
             symt_sh = &(elf->sht[i]);
+        }else if(strcmp(elf->sht[i].sh_name,".rel.text") == 0){
+            rtext_sh = &(elf->sht[i]);
+        }else if(strcmp(elf->sht[i].sh_name,".rel.data") == 0){
+            rdata_sh = &(elf->sht[i]);
         }
     }
 
@@ -255,6 +309,57 @@ void parse_elf(char* filename, elf_t* elf){
         parse_symtab(elf->buffer[symt_sh->sh_offset + i],&(elf->symt[i]));
         print_symtab_entry(&(elf->symt[i]));
     }
+
+    // parse relocation table .rel.text
+    if(rtext_sh != NULL){
+        elf->reltext_count = rtext_sh->sh_size;
+        elf->reltext = malloc(elf->reltext_count * sizeof(rel_entry_t));
+        for(int i=0; i<elf->reltext_count; ++i){
+            parse_relocation(elf->buffer[rtext_sh->sh_offset + i],&(elf->reltext[i]));
+            int st = elf->reltext[i].sym;
+            assert(0<=st && st < elf->symt_count);
+            print_relocation_entry(&(elf->reltext[i]));
+        }
+    }else{
+        elf->reltext_count = 0;
+        elf->reltext = NULL;
+    }
+
+    // parse relocation table .rel.data
+    if(rdata_sh != NULL){
+        elf->reldata_count = rdata_sh->sh_size;
+        elf->reldata = malloc(elf->reldata_count * sizeof(rel_entry_t));
+        for(int i=0; i<elf->reldata_count; ++i){
+            parse_relocation(elf->buffer[rdata_sh->sh_offset + i],&(elf->reldata[i]));
+            int st = elf->reldata[i].sym;
+            assert(0<=st && st < elf->symt_count);
+            print_relocation_entry(&(elf->reldata[i]));
+        }
+    }else{
+        elf->reldata_count = 0;
+        elf->reldata = NULL;
+    }
+}
+
+/**
+ * @brief 
+ * 
+ * @param filename 
+ * @param eof 
+ */
+void write_eof(const char* filename,elf_t* eof){
+    // open destation elf file
+    FILE* fp;
+    fp = fopen(filename,"w");
+    if (fp == NULL){
+        debug_printf(DEBUG_LINKER,"unable to open file: %s\n",filename);
+        exit(1);
+    }
+
+    for(int i=0; i< eof->line_count; i++){
+        fprintf(fp,"%s\n",eof->buffer[i]);
+    }
+    fclose(fp);
 }
 
 /**
@@ -268,4 +373,12 @@ void free_elf(elf_t* elf){
     elf->sht = NULL;
     free(elf->symt);
     elf->symt = NULL;
+    if(elf->reltext != NULL){
+        free(elf->reltext);
+        elf->reltext = NULL;
+    }
+    if(elf->reldata != NULL){
+        free(elf->reldata);
+        elf->reldata = NULL;
+    }
 }

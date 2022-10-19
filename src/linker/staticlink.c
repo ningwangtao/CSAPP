@@ -8,6 +8,7 @@
 
 #define MAX_SYMBOL_MAP_LENGTH         (64)
 #define MAX_SECTION_BUFFER_LENGTH     (64)
+#define MAX_RELOCATION_LINES          (64)
 
 
 // internal mapping between source and destination synbol entries
@@ -17,6 +18,117 @@ typedef struct{
     st_entry_t*   dst;  // dst symbol: used for relocation - find the function
 }smap_t;
 
+/**************************************/
+/*           Symbol Processing        */
+/**************************************/
+static void simple_resolution(st_entry_t* sym, elf_t* sym_elf, smap_t* candidate);
+static void symbol_processing(elf_t** src,int num_elf,elf_t* dst, smap_t* smap_table, int *smap_count);
+
+/**************************************/
+/*           Section Merging          */
+/**************************************/
+static void merge_section(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_table,int* smap_count);
+static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count);
+
+/**************************************/
+/*           Relocation               */
+/**************************************/
+static void relocation_processing(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_table,int* smap_count);
+static void R_X86_64_32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
+static void R_X86_64_PC32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
+static void R_X86_64_PLT32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
+typedef void (*rela_handler_t)(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
+static rela_handler_t handler_table[3] = {
+    &R_X86_64_32_handler,       // 0
+    &R_X86_64_PC32_handler,     // 1
+    /* linux commit b21ebf2: x86: Treat R_X86_64_PLT32 as R_X86_64_PC32*/
+    &R_X86_64_PLT32_handler,    // 2
+};
+
+/**************************************/
+/*           Helper function          */
+/**************************************/
+static const char* get_stb_string(st_bind_t bind);
+static const char* get_stt_string(st_type_t type);
+static inline uint8_t symbol_precefence(st_entry_t* sym);
+
+
+/* ------------------------------------- */
+/*  Exposed Interface for Static Linking */
+/* ------------------------------------- */
+/**
+ * @brief Interface for Static Linking
+ * 
+ * @param src 
+ * @param num_src 
+ * @param dst 
+ */
+void link_elf(elf_t** srcs, int num_srcs, elf_t* dst){
+
+    // reset the destination since it`s a new 
+    memset(dst,0,sizeof(elf_t));
+    // create the map table to connect the source and destination elf files symbol
+    int smap_count = 0;
+    smap_t smap_table[MAX_SYMBOL_MAP_LENGTH];
+
+    // update the smap table - symbol proccessing
+    symbol_processing(srcs,num_srcs,dst,(smap_t*)&smap_table,&smap_count);
+
+    printf("link_elf--------------------------link_elf\n");
+    for (int i = 0; i < smap_count; ++ i){
+        st_entry_t *ste = smap_table[i].src;
+        debug_printf(DEBUG_LINKER, "%s\t%d\t%d\t%s\t%d\t%d\n",
+            ste->st_name,
+            ste->bind,
+            ste->type,
+            ste->st_shndx,
+            ste->st_value,
+            ste->st_size);
+    }
+
+    // compute dst Section Header nad write into buffer
+    // UPDATE section header table: compute suntime address of each section
+    // UPDATE buffer: EOF file header: file line count,section header table line count,section header table
+    // compute running address of each section: .text, .rodata, .data, .symbol
+    // eof starting from 0x00400000
+    compute_section_header(dst,smap_table,&smap_count);
+
+    // malloc the dst.symt
+    dst->symt_count = smap_count;
+    dst->symt = malloc(dst->symt_count * sizeof(st_entry_t));
+
+    // to this point, the EOF file header and section header table is palced
+    // merge the left sections and relocate the entrirs in .text and .dsts
+
+    // merge the symbol content fron ELF src into dst sectopns
+    merge_section(srcs,num_srcs,dst,smap_table,&smap_count);
+
+    printf("-----------------------------\n");
+    printf("after merging the sections:\n");
+    for(int i=0; i< dst->line_count; ++i){
+        printf("%s\n",dst->buffer[i]);
+    }
+
+    // UPDATE buffer: relocate the referencing in buffer
+    // relocating: update the relocaation entries from ELF files into EOF buffer
+    relocation_processing(srcs,num_srcs,dst,smap_table,&smap_count);
+
+    // finally: check the EOF file
+    if((DEBUG_LINKER & DEBUG_VERBOSE_SET) != 0){
+        printf("----\nfinal output EOF:\n");
+        for(int i=0; i< dst->line_count; ++i){
+            printf("%s\n",dst->buffer[i]);
+        }
+    }
+}
+
+
+/**
+ * @brief Get the stb string object
+ * 
+ * @param bind 
+ * @return const char* 
+ */
 static const char* get_stb_string(st_bind_t bind){
     switch (bind)
     {
@@ -32,6 +144,12 @@ static const char* get_stb_string(st_bind_t bind){
     }
 }
 
+/**
+ * @brief Get the stt string object
+ * 
+ * @param type 
+ * @return const char* 
+ */
 static const char* get_stt_string(st_type_t type){
     switch (type)
     {
@@ -472,65 +590,149 @@ static void merge_section(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_tabl
     assert(line_written == dst->line_count);
 }
 
-
-/* ------------------------------------- */
-/*  Exposed Interface for Static Linking */
-/* ------------------------------------- */
 /**
  * @brief 
  * 
- * @param src 
- * @param num_src 
+ * @param srcs 
+ * @param num_srcs 
  * @param dst 
+ * @param smap_table 
+ * @param smap_count 
  */
-void link_elf(elf_t** srcs, int num_srcs, elf_t* dst){
+static void relocation_processing(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_table,int* smap_count){
 
-    // reset the destination since it`s a new 
-    memset(dst,0,sizeof(elf_t));
-    // create the map table to connect the source and destination elf files symbol
-    int smap_count = 0;
-    smap_t smap_table[MAX_SYMBOL_MAP_LENGTH];
-
-    // update the smap table - symbol proccessing
-    symbol_processing(srcs,num_srcs,dst,(smap_t*)&smap_table,&smap_count);
-
-    printf("link_elf--------------------------link_elf\n");
-    for (int i = 0; i < smap_count; ++ i){
-        st_entry_t *ste = smap_table[i].src;
-        debug_printf(DEBUG_LINKER, "%s\t%d\t%d\t%s\t%d\t%d\n",
-            ste->st_name,
-            ste->bind,
-            ste->type,
-            ste->st_shndx,
-            ste->st_value,
-            ste->st_size);
+    sh_entry_t* eof_text_sh = NULL;
+    sh_entry_t* eof_data_sh = NULL;
+    for(int i=0; i<dst->sht_count; ++i){
+        if(strcmp(dst->sht[i].sh_name,".text") == 0){
+            eof_text_sh = &(dst->sht[i]);
+        }else if(strcmp(dst->sht[i].sh_name,".data") == 0){
+            eof_data_sh = &(dst->sht[i]);
+        }
     }
 
-    // compute dst Section Header nad write into buffer
-    // UPDATE section header table: compute suntime address of each section
-    // UPDATE buffer: EOF file header: file line count,section header table line count,section header table
-    // compute running address of each section: .text, .rodata, .data, .symbol
-    // eof starting from 0x00400000
-    compute_section_header(dst,smap_table,&smap_count);
+    // update the relocation entries: r_row, r_col, sym
+    for(int i=0; i<num_srcs; ++i){
+        elf_t* elf = srcs[i];
 
-    // malloc the dst.symt
-    dst->symt_count = smap_count;
-    dst->symt = malloc(dst->symt_count * sizeof(st_entry_t));
+        // .rel.text
+        for(int j=0; j<elf->reltext_count; ++j){
+            rel_entry_t* r = &elf->reltext[j];
 
-    // to this point, the EOF file header and section header table is palced
-    // merge the left sections and relocate the entrirs in .text and .dsts
+            // search the referencing symbol
+            for(int k=0; k<elf->symt_count; ++k){
+                st_entry_t* sym = &elf->symt[k];
 
-    // merge the symbol content fron ELF src into dst sectopns
-    merge_section(srcs,num_srcs,dst,smap_table,&smap_count);
+                if(strcmp(sym->st_shndx,".text") == 0){
+                    // must be referenced by a .text symbol
+                    // TODO: check if this symbol is the one referencing
+                    int sym_text_start = sym->st_value;
+                    int sym_text_end = sym->st_value + sym->st_size - 1;
 
-    printf("-----------------------------\n");
-    printf("after merging the sections\n");
-    for(int i=0; i< dst->line_count; ++i){
-        printf("%s\n",dst->buffer[i]);
+                    if(sym_text_start <= r->r_row && r->r_row <= sym_text_end){
+                        // symt[k] is referencing reltext[j].sym
+                        // search the smap table to find the EOF location
+                        int smap_found = 0;
+                        for(int t=0; t<*smap_count; ++t){
+                            if(smap_table[t].src == sym){
+                                smap_found = 1;
+                                st_entry_t* eof_referencing = smap_table[t].dst;
+
+                                // search the being referenced symbol
+                                for(int u=0; u<*smap_count; ++u){
+                                    // what is the EOF symbol name?
+                                    // how to get the referenced symbol name
+                                    if(strcmp(elf->symt[r->sym].st_name,smap_table[u].dst->st_name) == 0 && 
+                                        smap_table[u].dst->bind == STB_GLOBAL){
+                                        // sill now, the referencing row and referenced row are all found
+                                        // update the location
+                                        st_entry_t* eof_referenced = smap_table[u].dst;
+                                        (handler_table[(int)r->type])(
+                                            dst,eof_text_sh,r->r_row - sym->st_value + eof_referencing->st_value,
+                                            r->r_col,
+                                            r->r_addrend,
+                                            eof_referenced
+                                        );
+                                        goto NEXT_REFERENCE_IN_TEXT;
+                                    }
+                                }
+                            }
+                        }
+                        // referencing must be in smap_table
+                        // because it has definition, is astrong symbol
+                        assert(smap_found == 1);
+                    }
+                }
+            }
+            NEXT_REFERENCE_IN_TEXT:
+            ;
+        }
+
+        // TODO: .rel.data
+        for(int j=0; j<elf->reldata_count; ++j){
+            rel_entry_t* r = &elf->reldata[j];
+
+            // search the referencing symbol
+            for(int k=0;k<elf->symt_count; ++k){
+                st_entry_t* sym = &elf->symt[k];
+
+                if(strcmp(sym->st_shndx,".data") == 0){
+                    // must be referenced by a .data symbol
+                    // check if this symbol is the one referencing
+                    int sym_data_start = sym->st_value;
+                    int sym_data_end = sym->st_value + sym->st_size - 1;
+
+                    if(sym_data_start <= r->r_row && r->r_row <= sym_data_end){
+                        // symt[k] is referencing reldata[j].sym
+                        // search the smap table to find the EOF location
+                        int smap_found = 0;
+                        for(int t=0; t<*smap_count; ++t){
+                            if(smap_table[t].src == sym){
+                                smap_found = 1;
+                                st_entry_t* eof_referencing = smap_table[t].dst;
+
+                                // search the being referenced symbol
+                                for(int u=0; u<*smap_count; ++u){
+                                    // what is the EOF symbol name?
+                                    // how to gei the referenced symbol name
+                                    if(strcmp(elf->symt[r->sym].st_name,smap_table[u].dst->st_name) == 0 &&
+                                        smap_table[u].dst->bind == STB_GLOBAL){
+                                        // till now, the referencing row and referenced row are all found
+                                        // update the location
+                                        st_entry_t* eof_referenced = smap_table[u].dst;
+
+                                        (handler_table[(int)r->type])(
+                                            dst,eof_data_sh,
+                                            r->r_row - sym->st_value + eof_referencing->st_value,
+                                            r->r_col,
+                                            r->r_addrend,
+                                            eof_referenced
+                                        );
+                                        goto NEXT_REFERENCE_IN_DATA;
+                                    }
+                                }
+                            }
+                        }
+                        // referencing must be in smap_table
+                        // because it has definition, is a strong symbol
+                        assert(smap_found == 1);
+                    }
+                }
+            }
+            NEXT_REFERENCE_IN_DATA:
+            ;
+        }
     }
-
-    // TODO: update dst.buffer for dst.symt
-    // find the buffer offset for symbol table and write the buffer
 }
 
-// https://github.com/yangminz/bcst_csapp/commit/054da4950ebaa0866ce76e69021d7bfc15ace85a
+static void R_X86_64_32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced){
+    printf("row = %d,col = %d,symbol referenced = %s\n",row_referencing,col_referencing,sym_referenced->st_name);
+}
+
+static void R_X86_64_PC32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced){
+    printf("row = %d,col = %d,symbol referenced = %s\n",row_referencing,col_referencing,sym_referenced->st_name);
+}
+
+static void R_X86_64_PLT32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced){
+    printf("row = %d,col = %d,symbol referenced = %s\n",row_referencing,col_referencing,sym_referenced->st_name);
+}

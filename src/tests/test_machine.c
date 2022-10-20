@@ -20,8 +20,10 @@ int main(){
     TestAddfunctionCallAndCompution();
 //    TestString2Uint();
 //    TestParsingOperand();
-    TestSumRecursiveCondition();
+
+//    TestSumRecursiveCondition();
 //    TestParseInstruction();
+    finally_cleanup();
     return 0;
 }
 

@@ -124,21 +124,22 @@ def clean():
 assert(len(sys.argv) >= 2)
 
 # single argument "python3 cmd.py argv[1]"
-if sys.argv[1] == "build" or sys.argv[1] == "b":
+argv_1_lower = sys.argv[1].lower()
+if "build".startswith(argv_1_lower):
     assert(len(sys.argv) == 3)
     build(sys.argv[2])
-elif sys.argv[1] == "run" or sys.argv[1] == "r":
+elif "run".startswith(argv_1_lower):
     run(sys.argv[2])
-elif sys.argv[1] == KEY_MACHINE:
+elif KEY_MACHINE.lower().startswith(argv_1_lower):
     build(KEY_MACHINE)
     run(KEY_MACHINE)
-elif sys.argv[1] == KEY_LINKER:
+elif KEY_LINKER.lower().startswith(argv_1_lower):
     build(KEY_LINKER)
     run(KEY_LINKER)
-elif sys.argv[1] == "mem":
+elif "memorycheck".startswith(argv_1_lower):
     assert(len(sys.argv) == 3)
     mem_check(sys.argv[2])
-elif sys.argv[1] == "clean":
+elif "clean".startswith(argv_1_lower):
     clean()
-elif sys.argv[1] == "count":
+elif "count".startswith(argv_1_lower):
     count_lines()

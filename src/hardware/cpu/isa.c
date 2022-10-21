@@ -4,6 +4,7 @@
 #include "headers/cpu.h"
 #include "headers/common.h"
 #include "headers/memory.h"
+#include "headers/datastruct.h"
 
 /*====================================================*/
 /*           instruction set architecture             */
@@ -66,10 +67,10 @@ typedef struct{
 /*           parse assembly instruction               */
 /*====================================================*/
 
-trie_node_t* register_mapping = NULL;
-trie_node_t* operator_mapping = NULL;
+static trie_node_t* register_mapping = NULL;
+static trie_node_t* operator_mapping = NULL;
 
-void trie_cleanup(){
+static void trie_cleanup(){
     printf("func into trie cleanup\n");
     trie_free(register_mapping);
     trie_free(operator_mapping);
@@ -176,7 +177,7 @@ static void lazy_initialize_trie(){
      add_cleanup_event(&trie_cleanup);
 }
 
-uint64_t try_get_from_trie(trie_node_t** root,char* key){
+static uint64_t try_get_from_trie(trie_node_t** root,char* key){
     if(*root == NULL){
         lazy_initialize_trie();
     }

@@ -42,17 +42,5 @@ uint64_t string2uint_range(const char* str,int start,int end);
 void add_cleanup_event(void *func);
 void finally_cleanup();
 
-/**************************************/
-/*           data structures          */
-/**************************************/
-typedef struct TRIE_NODE_STRUCT{
-    struct TRIE_NODE_STRUCT* next[128];
-    uint64_t address;
-}trie_node_t;
-
-void trie_insert(trie_node_t** root,char* key,uint64_t val);
-int trie_get(trie_node_t* root,char* key,uint64_t* val);
-void trie_free(trie_node_t* root);
-void trie_print(trie_node_t* root);
 
 #endif

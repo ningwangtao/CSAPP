@@ -1,9 +1,32 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "headers/cpu.h"
-#include "headers/memory.h"
+#include <assert.h>
 #include "headers/common.h"
+#include "headers/datastruct.h"
+
+static int get_index(char c){
+    if(c == '%'){
+        return 36;
+    }else if('0' <= c && c <= '9'){
+        return c - '0';
+    }else if('a' <= c && c <= 'z'){
+        return c - 'a' + 10;
+    }
+    return -1;
+}
+
+static char get_char(int id){
+    assert(0 <= id && id <= 36);
+    if(id == 36){
+        return '%';
+    }else if(0 <= id && id <= 9){
+        return (char)('0' + id);
+    }else if(10 <= id && id <= 35){
+        return (char)('a' + id - 10);
+    }
+    return '?';
+}
 
 void trie_insert(trie_node_t** root,char* key,uint64_t val){
     trie_node_t** p = root;
@@ -11,7 +34,7 @@ void trie_insert(trie_node_t** root,char* key,uint64_t val){
         if(*p == NULL){
             *p = malloc(sizeof(trie_node_t));
         }
-        p = &((*p)->next[(int)key[i]]);
+        p = &((*p)->next[get_index(key[i])]);
     }
     if(*p == NULL){
         *p = malloc(sizeof(trie_node_t));
@@ -19,6 +42,7 @@ void trie_insert(trie_node_t** root,char* key,uint64_t val){
     // may overwrite
     (*p)->address = val;
 }
+
 int trie_get(trie_node_t* root,char* key,uint64_t* val){
     trie_node_t* p = root;
     for(int i=0; i<strlen(key); ++i){
@@ -26,7 +50,7 @@ int trie_get(trie_node_t* root,char* key,uint64_t* val){
             // not found
             return 0;
         }
-        p = p->next[(int)key[i]];
+        p = p->next[get_index(key[i])];
     }
     *val = p->address;
     return 1;
@@ -40,7 +64,7 @@ void trie_free(trie_node_t* root){
     if(root == NULL){
         return ;
     }
-    for(int i=0; i<128; ++i){
+    for(int i=0; i<=36; ++i){
         trie_free(root->next[i]);
     }
     free(root);
@@ -54,8 +78,8 @@ static void trie_dfs_print(trie_node_t* x, int level, char c){
             }
             printf("[%c] %p\n",c,x);
         }
-        for(int j=0;j<128; ++j){
-            trie_dfs_print(x->next[j],level+1,(char)j);
+        for(int j=0;j<=36; ++j){
+            trie_dfs_print(x->next[j],level+1,get_char(j));
         }
     }
 }

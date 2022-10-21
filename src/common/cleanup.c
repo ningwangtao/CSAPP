@@ -54,8 +54,8 @@ void finally_cleanup(){
     for(int i=0; i< ecount; ++i){
         printf("func into finally cleanup,and ecount = %d\n",ecount);
         printf("event address = %p\n",&(*events[i]));
-        (*events[i])();
-        
+        (*events[i])(); 
     }
+    free(events);
     printf("func end finally cleanup,and ecount = %d\n",ecount);
 }

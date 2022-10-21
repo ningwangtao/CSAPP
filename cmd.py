@@ -61,8 +61,8 @@ def build(key):
             "./src/tests/test_machine.c",
             "./src/common/printf.c",
             "./src/common/convert.c",
-            "./src/common/trie.c",
             "./src/common/cleanup.c",
+            "./src/datastruct/trie.c",
             "./src/hardware/cpu/isa.c",
             "./src/hardware/cpu/mmu.c",
             "./src/hardware/memory/dram.c",
@@ -74,6 +74,7 @@ def build(key):
             "./src/tests/test_elf.c",
             "./src/common/printf.c",
             "./src/common/convert.c",
+            "./src/datastruct/hashtable.c",
             "./src/linker/parseElf.c",
             "./src/linker/staticlink.c",
             "-o",EXE_BIN_LINKER]

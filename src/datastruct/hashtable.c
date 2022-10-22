@@ -21,12 +21,12 @@ static uint64_t hash_function(char* str){
 
 static uint64_t lowbits_n(uint64_t num,int length){
     uint64_t mask = ~(0xffffffffffffffff << length );
-    return num & mask;
+    return (num & mask);
 }
 
 static void split_bucket_full(hashtable_t* tab,hashtable_bucket_t* b){
     assert(b != NULL);
-    assert(b->counter < tab->bsize);
+    assert(b->counter <= tab->bsize);
     assert(b->localdepth < tab->globaldepth);
     
     int before_localdepth = b->localdepth;
@@ -94,7 +94,7 @@ static void insert_bucket_tail(hashtable_t* tab,hashtable_bucket_t* b,char* key,
     assert(b->varray[b->counter] == 0x0);
 
     // insert the key
-    b->karray[b->counter]  = malloc((strlen(key) + 1) * sizeof(char));
+    b->karray[b->counter] = malloc((strlen(key) + 1) * sizeof(char));
     strcpy(b->karray[b->counter],key);
 
     // insert the value
@@ -120,6 +120,10 @@ hashtable_t* hashtable_construct(int bsize){
         b->counter = 0;
         b->karray = malloc(tab->bsize * sizeof(char*));
         b->varray = malloc(tab->bsize * sizeof(uint64_t));
+        for(int j=0; j<tab->bsize; ++j){
+            (b->karray)[j] = NULL;
+            (b->varray)[j] = 0x0;
+        }
 
         tab->barray[i] = b;
     }
@@ -166,6 +170,7 @@ int hashtable_get(hashtable_t* tab,char* key,uint64_t* val){
 
     hashtable_bucket_t* b = tab->barray[hid];
     for(int i=0; i<b->counter; ++i){
+//        printf("hid = %ld, karray = %s, key = %s\n",hid,b->karray[i],key);
         if(strcmp(b->karray[i],key) == 0){
             // found
             *val = b->varray[i];
@@ -213,14 +218,14 @@ int hashtable_insert(hashtable_t** tab_addr,char* key,uint64_t val){
 
             // finally, insert the input pair
             hid = lowbits_n(hid64,tab->globaldepth);
-            insert_bucket_tail(tab,b,key,val);
+            insert_bucket_tail(tab,tab->barray[hid],key,val);
             
             free(old_array);
             return 1;
         }else{
             // localdepth < globaldepth, split
             split_bucket_full(tab,b);
-            hid = lowbits_n(hid64,tab->globaldepth);
+            insert_bucket_tail(tab,tab->barray[hid],key,val);
             return 1;
         }
     }

@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include "headers/datastruct.h"
 
 #define MAX_CHAR_SECTION_NAME (32)
 // setion header entry
@@ -52,6 +53,8 @@ typedef enum{
     R_X86_64_PC32,
     R_X86_64_PLT32,
 }reltype_t;
+
+hashtable_t* link_constant_dict;
 
 // relocation entry type
 typedef struct{

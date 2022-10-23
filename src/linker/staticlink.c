@@ -377,7 +377,7 @@ static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count
     dst->sht_count = (count_text != 0) + (count_rodata != 0) + (count_data != 0) + 1;
     // count the total lines
     dst->line_count = 1 + 1 + dst->sht_count + count_text + count_rodata + count_data + *smap_count;
-    
+
     // the target dst: line_count, sht_count, sht, .text, ,rodata, .data, .symtab
     // print to buffer
     sprintf(dst->buffer[0],"%d",dst->line_count);

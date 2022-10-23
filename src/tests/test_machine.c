@@ -30,7 +30,7 @@ int main(){
 
 
 static void TestAddfunctionCallAndCompution(){
- 
+
     // init state
     cpu_reg.rax = 0xabcd;
     cpu_reg.rbx = 0x8000670;
@@ -98,7 +98,7 @@ static void TestAddfunctionCallAndCompution(){
     match = match && cpu_reg.rdi == 0xabcd;
     match = match && cpu_reg.rbp == 0x7ffffffee110;
     match = match && cpu_reg.rsp == 0x7ffffffee0f0;
-    
+
     if (match)
     {
         printf("register match\n");

@@ -207,7 +207,7 @@ static uint64_t compute_operand(od_t* od){
         // default register 1
         return od->reg1;
     }else{
-        
+
         // access memory: return the virtual address
         uint64_t vaddr = 0x0;
 
@@ -559,7 +559,7 @@ static void mov_handler (od_t* src_od,od_t* dst_od){
  */
 static void push_handler (od_t* src_od,od_t* dst_od){
     uint64_t src = compute_operand(src_od);
-    
+
     if(src_od->type == REG){
         // src: register
         // dst empty
@@ -622,7 +622,7 @@ static void call_handler (od_t* src_od,od_t* dst_od){
     // push the return value
     cpu_reg.rsp = cpu_reg.rsp - 8;
     write64bits_dram(va2pa(cpu_reg.rsp),cpu_pc.rip + sizeof(char) * MAX_INSTRUCTION_CHAR);
-    
+
     // jump to target function address
     cpu_pc.rip = src;
     cpu_flags.__flag_value = 0;

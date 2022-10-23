@@ -26,6 +26,52 @@ def make_build_directory():
     if not os.path.isdir("./bin/"):
         os.mkdir("./bin/")
 
+def format_include(s):
+    a = "#include<headers/"
+    b = "#include<"
+
+    # check include
+    if s.startswith(a):
+        s = "#include \"headers/" + s[len(s):]
+        for j in range(len(s)):
+            if s[j] == '>':
+                l = list(s)
+                l[j] = "\""
+                s = "".join(l)
+    elif s.startswith(b):
+        s = "#include <" + s[len(b):]
+    return s
+
+def format_whiteline(s):
+    space = 0
+    for c in s:
+        if c == ' ':
+            space += 1
+    if space == len(s) - 1 and s[-1] == '\n':
+        s = "\n"
+    return s
+
+def format_code():
+    # get line with path
+    filelist = list(Path(".").rglob("*.[ch]"))
+    # recursively add lines to every .c and file
+    print("recursively check every .c and file")
+    for filename in filelist:
+        try:
+            with open(filename,"r",encoding='ascii') as fr:
+                content = fr.readlines()
+                for i in range(len(content)):
+                    content[i] = format_include(content[i])
+                    content[i] = format_whiteline(content[i])
+                fr.close()
+                # reopen and write data: this is a safer approach
+                # tey to not open in r+ mode
+                with open(filename,"w",encoding='ascii') as fw:
+                    fw.writelines(content)
+                    fw.close()
+        except UnicodeDecodeError:
+            print(filename)
+
 def count_lines():
     # get files with paths
     filelist = list(Path(".").rglob("*.[ch]"))
@@ -161,3 +207,5 @@ elif "clean".startswith(argv_1_lower):
     clean()
 elif "count".startswith(argv_1_lower):
     count_lines()
+elif "format".startswith(argv_1_lower):
+    format_code()

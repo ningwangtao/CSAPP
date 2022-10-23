@@ -270,7 +270,7 @@ static void init_dictionary(){
     if(link_constant_dict != NULL){
         return ;
     }
-    
+
     link_constant_dict = hashtable_construct(4);
 
     hashtable_insert(&link_constant_dict,"R_X86_64_32",R_X86_64_32);

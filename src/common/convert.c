@@ -39,7 +39,7 @@ uint64_t string2uint_range(const char* str,int start,int end){
 
     for(int i=start; i<=end; ++i){
         char c = str[i];
-        
+
         if(state == 0){
             if(c == '0'){
                 state = 1;

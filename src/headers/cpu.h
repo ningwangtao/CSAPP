@@ -61,7 +61,7 @@ typedef struct
             uint8_t sih;
         };
     };
-    
+
     // 3th argument
     union 
     {
@@ -73,7 +73,7 @@ typedef struct
             uint8_t dh;
         };
     };
-    
+
     // 4th argument
     union 
     {
@@ -109,7 +109,7 @@ typedef struct
             uint8_t sph;
         };
     };
-    
+
     // 5th argument
     union {
         uint64_t r8;
@@ -141,7 +141,7 @@ typedef struct
         uint16_t r11w;
         uint8_t  r11b;
     };
-    
+
     // callee saved
     union {
         uint64_t r12;
@@ -241,7 +241,7 @@ typedef struct
 }cpu_flag_t;
 cpu_flag_t cpu_flags;
 
-    
+
 
 typedef struct
 {

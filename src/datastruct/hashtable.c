@@ -28,7 +28,7 @@ static void split_bucket_full(hashtable_t* tab,hashtable_bucket_t* b){
     assert(b != NULL);
     assert(b->counter <= tab->bsize);
     assert(b->localdepth < tab->globaldepth);
-    
+
     int before_localdepth = b->localdepth;
     int before_counter = b->counter;
 
@@ -71,7 +71,7 @@ static void split_bucket_full(hashtable_t* tab,hashtable_bucket_t* b){
         b0->karray[i] = NULL;
         b0->varray[i] = 0x0;
     }
-    
+
     // stll now , all pairs from b have been moved to b0(b) and b1
 
     // hid64 now is the last hid64, but the low bits should be the same
@@ -219,7 +219,7 @@ int hashtable_insert(hashtable_t** tab_addr,char* key,uint64_t val){
             // finally, insert the input pair
             hid = lowbits_n(hid64,tab->globaldepth);
             insert_bucket_tail(tab,tab->barray[hid],key,val);
-            
+
             free(old_array);
             return 1;
         }else{

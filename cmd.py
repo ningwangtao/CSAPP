@@ -109,6 +109,7 @@ def build(key):
             "./src/common/convert.c",
             "./src/common/cleanup.c",
             "./src/datastruct/trie.c",
+            "./src/datastruct/array.c",
             "./src/hardware/cpu/isa.c",
             "./src/hardware/cpu/mmu.c",
             "./src/hardware/memory/dram.c",

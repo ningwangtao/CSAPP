@@ -12,8 +12,9 @@
 #define DEBUG_LINKER              (0x40)
 #define DEBUG_LOADER              (0x80)
 #define DEBUG_PARSEINST           (0x100)
+#define DEBUG_DATASTRUCTURE       (0x200)
 
-#define DEBUG_VERBOSE_SET         (0x41)
+#define DEBUG_VERBOSE_SET         (0x241)
 
 // do page walk
 #define DEBUG_ENABLE_PAGE_WALK    (0x0)

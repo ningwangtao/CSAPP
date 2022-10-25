@@ -121,7 +121,11 @@ def build(key):
             "./src/tests/test_elf.c",
             "./src/common/printf.c",
             "./src/common/convert.c",
+            "./src/common/cleanup.c",
+            "./src/common/tagmalloc.c",
             "./src/datastruct/hashtable.c",
+            "./src/datastruct/array.c",
+            "./src/datastruct/linkedlist.c",
             "./src/linker/parseElf.c",
             "./src/linker/staticlink.c",
             "-o",EXE_BIN_LINKER]

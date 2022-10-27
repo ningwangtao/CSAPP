@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include "headers/common.h"
-#include "headers/datastruct.h"
+#include "headers/algorithm.h"
 
 
 static uint64_t hash_function(char* str){
@@ -131,12 +131,15 @@ void hashtable_free(hashtable_t* tab){
     if(tab == NULL){
         return;
     }
+    debug_printf(DEBUG_DATASTRUCTURE,"free hashtable:\n");
+    print_hashtable(tab);
+    
     for(int i=0; i<tab->num; ++i){
         hashtable_bucket_t* b = tab->directory[i];
         if(b == NULL){
             continue;
         }
-        for(int j=0; j<tab->size; ++j){
+        for(int j=0; j<b->counter; ++j){
             if(b->karray != NULL && b->karray[j] != NULL){
                 free(b->karray[j]);
                 b->karray[j] = NULL;

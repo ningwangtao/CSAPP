@@ -4,6 +4,8 @@
 #include <string.h>
 #include "headers/linker.h"
 #include "headers/common.h"
+#include "headers/algorithm.h"
+#include "headers/instruction.h"
 
 
 #define MAX_SYMBOL_MAP_LENGTH         (64)
@@ -36,13 +38,12 @@ static void compute_section_header(elf_t* dst,smap_t *smap_table,int *smap_count
 static void relocation_processing(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* smap_table,int* smap_count);
 static void R_X86_64_32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
 static void R_X86_64_PC32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
-static void R_X86_64_PLT32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
 typedef void (*rela_handler_t)(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced);
 static rela_handler_t handler_table[3] = {
     &R_X86_64_32_handler,       // 0
     &R_X86_64_PC32_handler,     // 1
     /* linux commit b21ebf2: x86: Treat R_X86_64_PLT32 as R_X86_64_PC32*/
-    &R_X86_64_PLT32_handler,    // 2
+    &R_X86_64_PC32_handler,     // 2
 };
 
 /**************************************/
@@ -228,7 +229,7 @@ static void simple_resolution(st_entry_t* sym, elf_t* sym_elf, smap_t* candidate
                  2         2
         */
         debug_printf(DEBUG_LINKER,"symbol resolution: strong synbol \"%s\" is recedenced\n",sym->st_name);
-        exit(1);
+        exit(0);
     }else if(pre1 != 2 && pre2 != 2){
         /* rule 3
                 pre1     pre2
@@ -242,9 +243,8 @@ static void simple_resolution(st_entry_t* sym, elf_t* sym_elf, smap_t* candidate
             // use stronger one as best match
             candidate->src = sym;
             candidate->elf = sym_elf;
-        }else{
-            // keep default, do not change
         }
+        return;
     }else if(pre1 == 2){
         /* rule 2
                 pre1     pre2
@@ -255,15 +255,13 @@ static void simple_resolution(st_entry_t* sym, elf_t* sym_elf, smap_t* candidate
         // select sym as best match
         candidate->src = sym;
         candidate->elf = sym_elf;
-    }else{
-        /* rule 2
-                pre1     pre2
-            ----------------------
-                 0         2
-                 1         2
-        */
-        // keep default, do not change
     }
+    /* rule 2
+            pre1     pre2
+        ----------------------
+                0         2
+                1         2
+    */
 }
 
 
@@ -283,7 +281,7 @@ static void symbol_processing(elf_t** src,int num_elf,elf_t* dst, smap_t* smap_t
         elf_t* elfp = src[i];
 
         // for every symbol from this elf file
-        for(uint8_t j=0;j<elfp->symt_count;++j){
+        for(int j=0;j<elfp->symt_count;++j){
             st_entry_t* sym = &(elfp->symt[j]);
             if(sym->bind == STB_LOCAL){
                 // insert the static (local) symbol to new elf qith confidence:
@@ -317,7 +315,7 @@ static void symbol_processing(elf_t** src,int num_elf,elf_t* dst, smap_t* smap_t
                 smap_table[*smap_count].elf = elfp;
                 // we have not created dst here
                 (*smap_count)++;
-            }else if(sym->bind == STB_WEAK){
+            }else if( sym->bind == STB_WEAK){
                 // discare this situation, nothing to do 
             }
             NEXT_SYMBOL_PROCESS:
@@ -325,10 +323,10 @@ static void symbol_processing(elf_t** src,int num_elf,elf_t* dst, smap_t* smap_t
             ;
         }
     }
-
+    
     // all elf files have been processed
     // cleanup: check if there is any undefined symbol in the map table
-    for(uint8_t i=0;i<*smap_count;++i){
+    for(int i=0;i<*smap_count;++i){
         st_entry_t* s = smap_table[i].src;
         // check SHN_UNDEF here
         assert(strcmp(s->st_shndx,"SHN_UNDEF") != 0);
@@ -725,14 +723,57 @@ static void relocation_processing(elf_t** srcs,int num_srcs,elf_t* dst,smap_t* s
     }
 }
 
+static uint64_t get_symbol_runtime_address(elf_t* dst,st_entry_t* sym){
+    // get the tun_time address of symbol
+    uint64_t base = 0x00400000;
+
+    uint64_t text_base = base;
+    uint64_t rodata_base = base;
+    uint64_t data_base = base;
+
+    int inst_size = sizeof(inst_t);
+    int data_size = sizeof(uint64_t);
+
+    // must visit in .text, .rodata, .data order
+    sh_entry_t* sht = dst->sht;
+    for(int i=0; i<dst->sht_count; ++i){
+        if(strcmp(sht[i].sh_name,".text") == 0){
+            rodata_base = text_base + sht[i].sh_size * inst_size;
+            data_base = rodata_base;
+        }else if(strcmp(sht[i].sh_name,".rodata") == 0){
+            data_base = rodata_base + sht[i].sh_size * data_size;
+        }
+    }
+    // check this symbol's section
+    if(strcmp(sym->st_shndx,".text") == 0){
+        return text_base + inst_size * sym->st_value;
+    }else if(strcmp(sym->st_shndx,".rodata") == 0){
+        return rodata_base + data_size * sym->st_value;
+    }else if(strcmp(sym->st_shndx,".data") == 0){
+        return data_base + data_size * sym->st_value;
+    }
+    return 0xffffffffffffffff;
+}
+
+static void write_relocation(char* dst, uint64_t val){
+    char temp[20];
+    sprintf(temp,"0x%016lx",val);
+    for(int i=0; i<18; ++i){
+        dst[i] = temp[i];
+    }
+}
+
 static void R_X86_64_32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced){
-    printf("row = %d,col = %d,symbol referenced = %s\n",row_referencing,col_referencing,sym_referenced->st_name);
+    uint64_t sym_address = get_symbol_runtime_address(dst,sym_referenced);
+    char* s = &dst->buffer[sh->sh_offset + row_referencing][col_referencing];
+    write_relocation(s,sym_address);
 }
 
 static void R_X86_64_PC32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced){
-    printf("row = %d,col = %d,symbol referenced = %s\n",row_referencing,col_referencing,sym_referenced->st_name);
-}
-
-static void R_X86_64_PLT32_handler(elf_t* dst,sh_entry_t* sh,int row_referencing,int col_referencing,int addend, st_entry_t* sym_referenced){
-    printf("row = %d,col = %d,symbol referenced = %s\n",row_referencing,col_referencing,sym_referenced->st_name);
+    assert(strcmp(sh->sh_name,".text") == 0);
+    
+    uint64_t sym_address = get_symbol_runtime_address(dst,sym_referenced);
+    uint64_t rip_value = 0x00400000 + (row_referencing + 1) * sizeof(inst_t);
+    char* s = &dst->buffer[sh->sh_offset + row_referencing][col_referencing];
+    write_relocation(s,sym_address - rip_value);
 }

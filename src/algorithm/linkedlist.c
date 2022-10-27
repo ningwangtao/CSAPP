@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
-#include "headers/datastruct.h"
+#include "headers/algorithm.h"
 
 
 // typedef struct LINKED_LIST_NODE_STRUCT{

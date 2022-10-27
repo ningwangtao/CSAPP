@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include "headers/datastruct.h"
+#include "headers/algorithm.h"
 
 #define MAX_CHAR_SECTION_NAME (32)
 // setion header entry

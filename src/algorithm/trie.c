@@ -3,7 +3,7 @@
 #include <string.h>
 #include <assert.h>
 #include "headers/common.h"
-#include "headers/datastruct.h"
+#include "headers/algorithm.h"
 
 static int get_index(char c){
     if(c == '%'){

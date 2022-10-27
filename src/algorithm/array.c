@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "headers/common.h"
-#include "headers/datastruct.h"
+#include "headers/algorithm.h"
 
 // typedef struct{
 //     uint32_t    size;

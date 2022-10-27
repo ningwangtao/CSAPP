@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "headers/common.h"
-#include "headers/datastruct.h"
+#include "headers/algorithm.h"
 
 typedef struct{
     // tag is like the generation in GC
